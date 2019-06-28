@@ -1,12 +1,9 @@
-import alt from "alt";
+import * as alt from "alt";
 import config from "./config.json";
 
 alt.on("playerConnect", (player) =>
 {
-    if(config.Enabled)
-    {
-        alt.emitClient(player, "getPlayerInformations", {type: config.Authorization});
-    }
+    if(config.Enabled) alt.emitClient(player, "getPlayerInformations", config.Authorization);
 });
 
 alt.onClient("responseClient", (player, data) =>
@@ -14,28 +11,27 @@ alt.onClient("responseClient", (player, data) =>
     if(config.Enabled)
     {
         let kick = true;
-        switch(config.Authorization)
+        if(data !== undefined || data !== null)
         {
-            case 0:
-                if(data.licensehash != undefined || data.licensehash != null)
-                {
-                    alt.log("[Whitelist] The " + player.name + " player is trying to connect (LicenseHash: " + data.licensehash + ")");
+            switch(config.Authorization)
+            {
+                case 0:
+                    alt.log(`[Whitelist] The ${player.name} player is trying to connect (LicenseHash: ${data})`);
                     config.Access.forEach(row =>
                     {
-                        if(data.licensehash == row) kick = false;  
+                        if(data === row) kick = false;
+                        return;
                     });
-                }
-                break;
-            case 1:
-                if(data.discord != undefined || data.discord != null)
-                {
-                    alt.log("[Whitelist] The " + player.name + " player is trying to connect (Discord ID: " + data.discord.id + ")");
+                    break;
+                case 1:
+                    alt.log(`[Whitelist] The ${player.name} player is trying to connect (Discord ID ${data.id})`);
                     config.Access.forEach(row =>
                     {
-                        if(data.discord.id == row) kick = false; 
+                        if(data.id === row) kick = false;
+                        return;
                     });
-                }
-                break;
+                    break;
+            }
         }
         if(kick) player.kick();
     }
