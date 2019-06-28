@@ -2,13 +2,13 @@ import alt from "alt";
 
 alt.onServer("getPlayerInformations", (data) =>
 {
-    switch(data.type)
+    switch(data)
     {
         case 0:
-            alt.emitServer("responseClient", {licensehash: alt.getLicenseHash()});
+            alt.emitServer("responseClient", alt.getLicenseHash());
             break;
         case 1:
-            alt.emitServer("responseClient", {discord: alt.discordInfo()});
+            alt.emitServer("responseClient", alt.discordInfo());
             break;
     }
 });
