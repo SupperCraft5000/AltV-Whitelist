@@ -1,38 +1,24 @@
-import * as alt from "alt";
-import config from "./config.json";
+import fs from 'fs';
+import * as alt from 'alt';
+import { config } from './config.mjs';
 
-alt.on("playerConnect", (player) =>
-{
-    if(config.Enabled) alt.emitClient(player, "getPlayerInformations", config.Authorization);
+alt.on('playerConnect', (player) => {
+  if (!config.enabled) return;
+  alt.emitClient(player, 'PlayerId', config.method);
 });
 
-alt.onClient("responseClient", (player, data) =>
-{
-    if(config.Enabled)
-    {
-        let kick = true;
-        if(data !== undefined || data !== null)
-        {
-            switch(config.Authorization)
-            {
-                case 0:
-                    alt.log(`[Whitelist] The ${player.name} player is trying to connect (LicenseHash: ${data})`);
-                    config.Access.forEach(row =>
-                    {
-                        if(data === row) kick = false;
-                        return;
-                    });
-                    break;
-                case 1:
-                    alt.log(`[Whitelist] The ${player.name} player is trying to connect (Discord ID ${data.id})`);
-                    config.Access.forEach(row =>
-                    {
-                        if(data.id === row) kick = false;
-                        return;
-                    });
-                    break;
-            }
-        }
-        if(kick) player.kick();
-    }
+alt.onClient('PlayerIdReady', (player, id) => {
+  fs.readFile('./resources/whitelist/whitelist.json', function (err, data) {
+    // you might want to use "path" here ^
+    if (err) throw err;
+
+    let whitelist = JSON.parse(data);
+    let isWhitelisted = whitelist.find((wl) => wl.discord === id);
+    if (!isWhitelisted) player.kick();
+    alt.log(`[Whitelist] ${player.name} is trying to connect (${config.method} : ${id})`);
+    //whitelisted, now do whatever you want
+    //and if somehow discord is down
+    // you can use licensehash
+    // just edit config.mjs line 3
+  });
 });
